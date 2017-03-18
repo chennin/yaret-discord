@@ -1,0 +1,7 @@
+This is a YARET to Discord bot. Is is NOT a general purpose RIFT event API
+to Discord bot.
+
+It is meant to be used with the database a full YARET install is also using
+(to not hit the API unnecessarily).
+
+Current release: alpha
