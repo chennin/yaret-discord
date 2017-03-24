@@ -95,4 +95,29 @@ async def send_new_events():
         await asyncio.sleep(pausetime) # task runs every pausetime seconds
 
 client.loop.create_task(send_new_events())
-client.run(config['secret'])
+run = True
+while run == True:
+  loop = asyncio.get_event_loop()
+  try:
+    loop.run_until_complete(client.start(config['secret']))
+  except discord.LoginFailure:
+    print("Failed to log in")
+  except discord.GatewayNotFound:
+    print("Websocket gateway not found, is Discord down?")
+  except KeyboardInterrupt:
+    print("Logging out")
+    loop.run_until_complete(client.logout())
+    run = False
+  except (discord.Forbidden, discord.NotFound) as e:
+    print("Error {0}: {1}".format(e.reponse, e.message))
+    pass
+  except discord.HTTPException as e:
+    print("HTTP Error {0}: {1}".format(e.response.status, e.text))
+    client.close()
+    sleep(60)
+  except discord.ConnectionClosed as e:
+    print("Connection Error {0}: {1}".format(str(e.code), e.reason))
+    client.close()
+    sleep(60)
+  finally:
+    loop.close()
