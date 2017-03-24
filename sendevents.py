@@ -6,6 +6,9 @@ import asyncio
 import pymysql.cursors
 from six.moves import configparser
 import time
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 # Read config file in
 mydir = os.path.dirname(os.path.realpath(__file__))
