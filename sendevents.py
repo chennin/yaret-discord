@@ -63,10 +63,10 @@ async def send_new_events():
               cursor2.execute(sql, newevent['shardid'])
               result2 = cursor2.fetchone()
               shardname = result2['name']
-              if result2['dc'] == "eu":
-                tags += ":flag_eu:"
-              if result2['dc'] == "na":
-                tags += ":flag_us:"
+#              if result2['dc'] == "eu":
+#                tags += ":flag_eu:"
+#              if result2['dc'] == "na":
+#                tags += ":flag_us:"
               if result2['pvp'] == 1:
                 tags += ":crossed_swords:"
               channel = discord.Object(id=channelid[result2['dc']])
