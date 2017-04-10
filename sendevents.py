@@ -32,7 +32,7 @@ client = discord.Client()
 @client.event
 async def on_ready():
     print('Logged in as ' + client.user.name + "#" + str(client.user.discriminator))
-    await client.change_presence(game=discord.Game(name='Rift'))
+    await client.change_presence(game=discord.Game(name='RIFT'))
 
 async def send_new_events():
     global pausetime
