@@ -96,6 +96,7 @@ async def send_new_events():
                 tags += "<:nuts:282258834473615361>"
 
               await client.send_message(channel, '{!s} **{!s}** has started in **{!s}** on **{!s}**.'.format(tags, eventname, zonename, shardname))
+        conn.close()
         await asyncio.sleep(pausetime) # task runs every pausetime seconds
 
 client.loop.create_task(send_new_events())
