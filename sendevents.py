@@ -90,6 +90,10 @@ async def send_new_events():
               # Xarth's Skull
               if newevent['eventid'] in [201, 202]:
                 tags += ":european_castle:"
+              # Unstables. Not 152!
+              elif newevent['eventid'] in list(range(130,152)) + [153]:
+                # RIFT Discord squirrel icon
+                tags += "<:nuts:282258834473615361>"
 
               await client.send_message(channel, '{!s} **{!s}** has started in **{!s}** on **{!s}**.'.format(tags, eventname, zonename, shardname))
         await asyncio.sleep(pausetime) # task runs every pausetime seconds
