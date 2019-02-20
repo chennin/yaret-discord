@@ -1,7 +1,9 @@
 [YTD]
 secret=
+# Comma separated
 channel-na=
 channel-eu=
+channel-prime=
 dbuser=
 dbhost=
 dbpass=

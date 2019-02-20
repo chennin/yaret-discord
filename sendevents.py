@@ -16,14 +16,15 @@ configReader = configparser.RawConfigParser()
 configReader.read(mydir + "/config.txt")
 
 config = {}
-for var in ["secret", "channel-na", "channel-eu", "dbuser", "dbhost", "dbpass", "db"]:
+for var in ["secret", "channel-na", "channel-eu", "channel-prime", "dbuser", "dbhost", "dbpass", "db"]:
   config[var] = configReader.get("YTD",var)
 
-pausetime = 60
+pausetime = 31
 seentime = int(time.time())
 channelid = {
   'na': config['channel-na'],
-  'eu': config['channel-eu']
+  'eu': config['channel-eu'],
+  'prime': config['channel-prime']
 }
 #os.environ['TZ'] = 'UTC'
 
@@ -62,6 +63,13 @@ async def send_new_events():
               #result2 = await cursor.fetchone()
               cursor2.execute(sql, newevent['shardid'])
               result2 = cursor2.fetchone()
+              dischans = []
+              for cid in channelid[result2['dc']].split(","):
+                if not cid.isnumeric():
+                  continue
+                dischans.append(discord.Object(id=cid))
+              if not dischans:
+                continue
               shardname = result2['name']
 #              if result2['dc'] == "eu":
 #                tags += ":flag_eu:"
@@ -69,7 +77,6 @@ async def send_new_events():
 #                tags += ":flag_us:"
               if result2['pvp'] == 1:
                 tags += ":crossed_swords:"
-              channel = discord.Object(id=channelid[result2['dc']])
               
               sql = 'SELECT name FROM `zones` WHERE `lang` = "en_US" AND `id` = %s'
               #await cursor.execute(sql, newevent['zoneid'])
@@ -78,7 +85,7 @@ async def send_new_events():
               result2 = cursor2.fetchone()
               zonename = result2['name']
               # Starfall zone IDs
-              if newevent['zoneid'] in [788055204, 2007770238, 1208799201, 2066418614]:
+              if newevent['zoneid'] in [788055204, 2007770238, 1208799201, 2066418614, 511816852]:
                 tags += ":stars:"
 
               sql = 'SELECT name FROM `eventnames` WHERE `lang` = "en_US" AND `id` = %s'
@@ -90,12 +97,17 @@ async def send_new_events():
               # Xarth's Skull
               if newevent['eventid'] in [201, 202]:
                 tags += ":european_castle:"
+              elif newevent['eventid'] in list(range(206,212)):
+                tags += ":mountain_snow:"
+              # Hellbugs
+              elif newevent['eventid'] in [157,159]:
+                tags += ":bug:"
               # Unstables. Not 152!
-              elif newevent['eventid'] in list(range(130,152)) + [153]:
-                # RIFT Discord squirrel icon
-                tags += "<:nuts:282258834473615361>"
+              elif newevent['eventid'] in list(range(130,152)) + [153] + list(range(187,193)):
+                tags += ":white_circle:"
 
-              await client.send_message(channel, '{!s} **{!s}** has started in **{!s}** on **{!s}**.'.format(tags, eventname, zonename, shardname))
+              for channel in dischans:
+                await client.send_message(channel, '{!s} **{!s}** has started in **{!s}** on **{!s}**.'.format(tags, eventname, zonename, shardname))
         conn.close()
         await asyncio.sleep(pausetime) # task runs every pausetime seconds
 
