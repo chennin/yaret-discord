@@ -7,6 +7,7 @@ import pymysql.cursors
 from six.moves import configparser
 import time
 import logging
+from discord.ext import tasks, commands
 
 logging.basicConfig(level=logging.INFO)
 
@@ -29,17 +30,19 @@ channelid = {
 #os.environ['TZ'] = 'UTC'
 
 client = discord.Client()
+#client = commands.Bot("!")
 
 @client.event
 async def on_ready():
     print('Logged in as ' + client.user.name + "#" + str(client.user.discriminator))
-    await client.change_presence(game=discord.Game(name='RIFT'))
+    await client.change_presence(activity=discord.Game(name='RIFT'))
 
+@tasks.loop(seconds=pausetime)
 async def send_new_events():
     global pausetime
     global seentime
     await client.wait_until_ready()
-    while not client.is_closed:
+    if not client.is_closed():
 #      async with aiomysql.connect(...?) as conn:
         conn = pymysql.connect(host=config['dbhost'], user=config['dbuser'], password=config['dbpass'], db=config['db'], charset='utf8mb4',cursorclass=pymysql.cursors.DictCursor)
         print("Looking...")
@@ -67,7 +70,7 @@ async def send_new_events():
               for cid in channelid[result2['dc']].split(","):
                 if not cid.isnumeric():
                   continue
-                dischans.append(discord.Object(id=cid))
+                dischans.append(client.get_channel( int(cid) ))
               if not dischans:
                 continue
               shardname = result2['name']
@@ -107,34 +110,42 @@ async def send_new_events():
                 tags += ":white_circle:"
 
               for channel in dischans:
-                await client.send_message(channel, '{!s} **{!s}** has started in **{!s}** on **{!s}**.'.format(tags, eventname, zonename, shardname))
+                await channel.send('{!s} **{!s}** has started in **{!s}** on **{!s}**.'.format(tags, eventname, zonename, shardname))
         conn.close()
-        await asyncio.sleep(pausetime) # task runs every pausetime seconds
+#        await asyncio.sleep(pausetime) # task runs every pausetime seconds
 
-client.loop.create_task(send_new_events())
-run = True
-while run == True:
-  loop = asyncio.get_event_loop()
-  try:
-    loop.run_until_complete(client.start(config['secret']))
-  except discord.LoginFailure:
-    print("Failed to log in")
-  except discord.GatewayNotFound:
-    print("Websocket gateway not found, is Discord down?")
-  except KeyboardInterrupt:
-    print("Logging out")
-    loop.run_until_complete(client.logout())
-    run = False
-  except (discord.Forbidden, discord.NotFound) as e:
-    print("Error {0}: {1}".format(e.reponse, e.message))
-    pass
-  except discord.HTTPException as e:
-    print("HTTP Error {0}: {1}".format(e.response.status, e.text))
-    client.close()
-    sleep(60)
-  except discord.ConnectionClosed as e:
-    print("Connection Error {0}: {1}".format(str(e.code), e.reason))
-    client.close()
-    sleep(60)
-  finally:
-    loop.close()
+#send_new_events.before_loop(client.wait_until_ready())
+send_new_events.start()
+client.run(config['secret'])
+
+##client.loop.create_task(send_new_events())
+#run = True
+#while run == True:
+##  loop = asyncio.get_event_loop()
+#  try:
+##    loop.run_until_complete(client.start(config['secret']))
+#    send_new_events.start()
+#    client.run(config['secret'])
+##    client.start(config['secret'])
+#  except discord.LoginFailure:
+#    print("Failed to log in")
+#  except discord.GatewayNotFound:
+#    print("Websocket gateway not found, is Discord down?")
+#  except KeyboardInterrupt:
+#    print("Logging out")
+##    loop.run_until_complete(client.logout())
+#    client.logout()
+#    run = False
+#  except (discord.Forbidden, discord.NotFound) as e:
+#    print("Error {0}: {1}".format(e.reponse, e.message))
+#    pass
+#  except discord.HTTPException as e:
+#    print("HTTP Error {0}: {1}".format(e.response.status, e.text))
+#    client.close()
+#    sleep(60)
+#  except discord.ConnectionClosed as e:
+#    print("Connection Error {0}: {1}".format(str(e.code), e.reason))
+#    client.close()
+#    sleep(60)
+##  finally:
+##    loop.close()
